@@ -31,11 +31,20 @@ int main(int argc, char* argv[]) {
     // creating a TCP socket to connect to the AWS server
     int aws_socket = socket(AF_INET, SOCK_STREAM, 0);
 
-    // initializing the elements of the socket address information 
+    // initializing the elements of the AWS server socket address information 
     struct sockaddr_in s_address;
     s_address.sin_family = AF_INET;
     s_address.sin_port = htons(24128); // change it later to dynamic port
     s_address.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+    // initializing the elements of the Client socket address information
+    struct sockaddr_in client_address;
+    client_address.sin_family = AF_INET;
+    client_address.sin_port = htons(25128);
+    client_address.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+    // binding the Client TCP socket to the IP address and port number
+    bind(aws_socket, (struct sockaddr *) &client_address, sizeof(client_address));
 
     // establishing a connection and checking for error
     int conn_status = connect(aws_socket, (struct sockaddr *) &s_address, sizeof(s_address));
@@ -51,13 +60,14 @@ int main(int argc, char* argv[]) {
 
     send(aws_socket, buffer, sizeof(buffer), 0);
 
+    printf("The client has sent query to AWS using TCP over port %d: start vertex %d; map %c; file size %d.\n", 
+        ntohs(client_address.sin_port), buffer[1], buffer[0], buffer[2]);
+
     // receiving the shortest path information back from the AWS server
     char shortest_path[256]; // change data structure later
     recv(aws_socket, &shortest_path, sizeof(shortest_path), 0);
 
-    printf("Arguments are: %c %d %d\n", buffer[0], buffer[1], buffer[2]);
-
-    printf("Information received from server: %s\n", shortest_path);
+    printf("The client has received results from AWS: %s\n", shortest_path);
 
     // closing the socket
     close(aws_socket);
