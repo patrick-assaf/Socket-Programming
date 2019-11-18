@@ -29,8 +29,6 @@ int main() {
     s_address.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     // binding the socket to the IP address and port number
-    int yes = 1;
-    setsockopt(aws_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
     bind(aws_socket, (struct sockaddr *) &s_address, sizeof(s_address));
 
     // listening for connections and accepting the connection with the CLient 
