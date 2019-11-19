@@ -30,11 +30,14 @@ int main(int argc, char* argv[]) {
 
     // creating a TCP socket to connect to the AWS server
     int aws_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if(aws_socket == -1) {
+        perror("Error creating TCP socket");
+    }
 
     // initializing the elements of the AWS server socket address information 
     struct sockaddr_in s_address;
     s_address.sin_family = AF_INET;
-    s_address.sin_port = htons(24128); // change it later to dynamic port
+    s_address.sin_port = htons(24128);
     s_address.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     // initializing the elements of the Client socket address information
@@ -44,12 +47,15 @@ int main(int argc, char* argv[]) {
     client_address.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     // binding the Client TCP socket to the IP address and port number
-    bind(aws_socket, (struct sockaddr *) &client_address, sizeof(client_address));
+    int binding = bind(aws_socket, (struct sockaddr *) &client_address, sizeof(client_address));
+    if(binding == -1) {
+        perror("Error binding TCP socket with address information");
+    }
 
     // establishing a connection and checking for error
     int conn_status = connect(aws_socket, (struct sockaddr *) &s_address, sizeof(s_address));
     if(conn_status == -1) {
-        printf("Connection to AWS server could not be made...\n");
+        perror("Error connecting to AWS server");
     }
 
     // sending the query information to the AWS server
@@ -58,16 +64,24 @@ int main(int argc, char* argv[]) {
     buffer[1] = query.start_index;
     buffer[2] = query.file_size;
 
-    send(aws_socket, buffer, sizeof(buffer), 0);
-
-    printf("The client has sent query to AWS using TCP over port %d: start vertex %d; map %c; file size %d.\n", 
+    int sending = send(aws_socket, buffer, sizeof(buffer), 0);
+    if(sending == -1) {
+        perror("Error sending data to AWS server");
+    }
+    else {
+        printf("The client has sent query to AWS using TCP over port %d: start vertex %d; map %c; file size %d.\n", 
         ntohs(client_address.sin_port), buffer[1], buffer[0], buffer[2]);
+    }
 
     // receiving the shortest path information back from the AWS server
     char shortest_path[256]; // change data structure later
-    recv(aws_socket, &shortest_path, sizeof(shortest_path), 0);
-
-    printf("The client has received results from AWS: %s\n", shortest_path);
+    int receive = recv(aws_socket, &shortest_path, sizeof(shortest_path), 0);
+    if(receive == -1) {
+        perror("Error receiving data from AWS server");
+    }
+    else {
+        printf("The client has received results from AWS: %s\n", shortest_path);
+    }
 
     // closing the socket
     close(aws_socket);
