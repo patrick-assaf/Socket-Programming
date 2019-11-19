@@ -34,10 +34,7 @@ int main() {
     // initializing the elements of the Client socket address information
     struct sockaddr_in client_address;
     client_address.sin_family = AF_INET;
-    client_address.sin_port = htons(25128);
-    client_address.sin_addr.s_addr = inet_addr("127.0.0.1");
-
-    socklen_t addr_size = sizeof client_address;
+    s_address.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     // binding the AWS server TCP socket to the IP address and port number
     int binding = bind(aws_socket, (struct sockaddr *) &s_address, sizeof(s_address));
@@ -51,6 +48,7 @@ int main() {
         perror("Error listening to TCP port");
     }
 
+    socklen_t addr_size = sizeof client_address;
     int client_fd = accept(aws_socket, (struct sockaddr *) &client_address, &addr_size);
     if(client_fd == -1) {
         perror("Error accepting connection from Client");

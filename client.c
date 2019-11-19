@@ -43,7 +43,6 @@ int main(int argc, char* argv[]) {
     // initializing the elements of the Client socket address information
     struct sockaddr_in client_address;
     client_address.sin_family = AF_INET;
-    client_address.sin_port = htons(25128);
     client_address.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     // binding the Client TCP socket to the IP address and port number
@@ -69,8 +68,8 @@ int main(int argc, char* argv[]) {
         perror("Error sending data to AWS server");
     }
     else {
-        printf("The client has sent query to AWS using TCP over port %d: start vertex %d; map %c; file size %d.\n", 
-        ntohs(client_address.sin_port), buffer[1], buffer[0], buffer[2]);
+        printf("The client has sent query to AWS using TCP: start vertex %d; map %c; file size %d.\n", 
+        buffer[1], buffer[0], buffer[2]);
     }
 
     // receiving the shortest path information back from the AWS server
