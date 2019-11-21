@@ -25,21 +25,45 @@ int main() {
         perror("Error creating TCP socket");
     }
 
-    // initializing the elements of the AWS server socket address information
+    // creating a UDP socket to communicate with servers A & B
+    int udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
+    if(udp_socket == -1) {
+        perror("Error creating UDP socket");
+    }
+
+    // initializing the elements of the AWS server TCP socket address information
     struct sockaddr_in s_address;
     s_address.sin_family = AF_INET;
     s_address.sin_port = htons(24128);
     s_address.sin_addr.s_addr = inet_addr("127.0.0.1");
-        
+
+    // initializing the elements of the AWS server UDP socket address information
+    struct sockaddr_in udp_address;
+    udp_address.sin_family = AF_INET;
+    udp_address.sin_port = htons(23128);
+    udp_address.sin_addr.s_addr = inet_addr("127.0.0.1");
+    
+    // initializing the elements of the Server A UDP socket address information
+    struct sockaddr_in a_address;
+    a_address.sin_family = AF_INET;
+    a_address.sin_port = htons(21128);
+    a_address.sin_addr.s_addr = inet_addr("127.0.0.1");
+
     // initializing the elements of the Client socket address information
     struct sockaddr_in client_address;
     client_address.sin_family = AF_INET;
     s_address.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     // binding the AWS server TCP socket to the IP address and port number
-    int binding = bind(aws_socket, (struct sockaddr *) &s_address, sizeof(s_address));
-    if(binding == -1) {
+    int tcp_bind = bind(aws_socket, (struct sockaddr *) &s_address, sizeof(s_address));
+    if(tcp_bind == -1) {
         perror("Error binding TCP socket with address information");
+    }
+
+    // binding the AWS server UDP socket to the IP address and port number
+    int udp_bind = bind(udp_socket, (struct sockaddr *) &udp_address, sizeof(udp_address));
+    if(udp_bind == -1) {
+        perror("Error binding UDP socket with address information");
     }
 
     // listening for connections
@@ -49,8 +73,8 @@ int main() {
     }
 
     while(1) {
-        socklen_t addr_size = sizeof client_address;
-        int client_fd = accept(aws_socket, (struct sockaddr *) &client_address, &addr_size);
+        socklen_t client_addr_size = sizeof client_address;
+        int client_fd = accept(aws_socket, (struct sockaddr *) &client_address, &client_addr_size);
 
         // receiving the query information from the Client
         char buffer[3];
@@ -58,6 +82,9 @@ int main() {
         if(receive != -1) {
             printf("The AWS has received map ID %c, start vertex %d and file size %d from the client using TCP over port %d.\n",
             buffer[0], buffer[1], buffer[2], ntohs(s_address.sin_port));
+        }
+        else if(client_fd != -1 && receive == -1) {
+            perror("Error receiving data from Client");
         }
 
         struct query_t {
@@ -70,11 +97,26 @@ int main() {
         query.map_id = buffer[0];
         query.start_index = buffer[1];
         query.file_size = buffer[2];
+
+        // sending data to Server A
+        if(client_fd != -1 && receive != -1) {
+            socklen_t a_addr_size = sizeof a_address;
+            int udp_send = sendto(udp_socket, buffer, sizeof(buffer), 0, (struct sockaddr *) &a_address, a_addr_size);
+            if(udp_send == -1) {
+                perror("Error sending data to Server A");
+            }
+            else {
+                printf("The AWS has sent map ID and starting vertex to server A using UDP over port %d.\n", ntohs(udp_address.sin_port));
+            }
+        }
         
         // sending data to the Client
         int sending = send(client_fd, shortest_path, sizeof(shortest_path), 0);
         if(sending != -1) {
-            printf("The AWS has sent calculated delay to client using TCP over port %d\n", ntohs(s_address.sin_port));
+            printf("The AWS has sent calculated delay to client using TCP over port %d.\n", ntohs(s_address.sin_port));
+        }
+        else if(client_fd != -1 && sending == -1) {
+            perror("Error sending data to Client");
         }
 
         sleep(1);
