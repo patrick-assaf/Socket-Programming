@@ -20,6 +20,12 @@ typedef struct map {
     int adj[10][10];
 } map_t;
 
+// creating linked list nodes for the maps list
+typedef struct node {
+    map_t data;
+    struct node *next;
+} node_t;
+
 int main() {
 
     // creating a UDP socket to communicate with AWS
