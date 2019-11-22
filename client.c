@@ -15,12 +15,12 @@
 int main(int argc, char* argv[]) {
 
     // defining the variables that will hold the query information
-    struct query_t {
+    typedef struct query {
         char map_id;
         int start_index, file_size;
-    };
+    } query_t;
 
-    struct query_t query;
+    query_t query;
     query.map_id = *argv[1];
     query.start_index = atoi(argv[2]);
     query.file_size = atoi(argv[3]);

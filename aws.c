@@ -87,12 +87,12 @@ int main() {
             perror("Error receiving data from Client");
         }
 
-        struct query_t {
+        typedef struct query {
             char map_id;
             int start_index, file_size;
-        };
+        } query_t;
 
-        struct query_t query;
+        query_t query;
 
         query.map_id = buffer[0];
         query.start_index = buffer[1];

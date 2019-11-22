@@ -12,6 +12,14 @@
 #include <signal.h>
 #include <math.h>
 
+// creating a data structure to store map information
+typedef struct map {
+    char map_id;
+    int propagation_speed;
+    int transmission_speed;
+    int adj[10][10];
+} map_t;
+
 int main() {
 
     // creating a UDP socket to communicate with AWS
