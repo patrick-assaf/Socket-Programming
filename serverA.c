@@ -53,7 +53,7 @@ ssize_t line = 0;
 size_t buffer_size = 0;
 char *buffer = NULL;
 
-int readFromMapFile(map_t *newMap, node_t *newNode, FILE *mapFile) {
+int readFromMapFile(map_t *newMap, FILE *mapFile) {
 
     num_of_maps += 1;
 
@@ -127,16 +127,14 @@ int main() {
     }
 
     map_t *firstMap = createMap();
+    int done = readFromMapFile(firstMap, mapFile);
     node_t *firstNode = createNode(firstMap);
-
-    int done = readFromMapFile(firstMap, firstNode, mapFile);
 
     while(done == 0) {
         new = 0;
         map_t *nextMap = createMap();
+        done = readFromMapFile(nextMap, mapFile);
         node_t *nextNode = createNode(nextMap);
-        done = readFromMapFile(nextMap, nextNode, mapFile);
-        nextNode->data = *nextMap;
         node_t *element = firstNode;
         while(element->next != NULL) {
             element = element->next;
@@ -146,44 +144,17 @@ int main() {
 
     fclose(mapFile);
 
-    printf("Information from map:\nMap ID: %c\nPropagation Speed: %.2f\nTransmission Speed: %.2f\n", 
-    firstMap->map_id, firstMap->propagation_speed, firstMap->transmission_speed);
-
-    for(int i=0; i<10; i++) {
-        for (int j=0; j<10; j++) {
-            printf("%d ", firstMap->adj[i][j]);
-        }
-        printf("\n");
+    printf("The Server A has constructed a list of %d maps:\n", num_of_maps);
+    printf("-------------------------------------------\n");
+    printf("Map ID Num Vertices Num Edges\n");
+    printf("-------------------------------------------\n");
+    node_t *element = firstNode;
+    while(element != NULL) {
+        map_t *map = &element->data;
+        printf("%c      %d      %d\n", map->map_id, map->num_vertices, map->num_edges);
+        element = element->next;
     }
-
-    printf("Number of Edges: %d\n", firstMap->num_edges);
-    printf("Number of Vertices: %d\n", firstMap->num_vertices);
-    printf("Number of Maps: %d\n", num_of_maps);
-
-    map_t *nextMap = &firstNode->next->data;
-    node_t *nextNode = firstNode->next;
-
-    printf("\nInformation from NEXT map:\nMap ID: %c\nPropagation Speed: %.2f\nTransmission Speed: %.2f\n", 
-    nextMap->map_id, nextMap->propagation_speed, nextMap->transmission_speed);
-
-    for(int i=0; i<10; i++) {
-        for (int j=0; j<10; j++) {
-            printf("%d ", nextMap->adj[i][j]);
-        }
-        printf("\n");
-    }
-
-    map_t *after = &nextNode->next->data;
-
-    printf("\nInformation from NEXT map:\nMap ID: %c\nPropagation Speed: %.2f\nTransmission Speed: %.2f\n", 
-    after->map_id, after->propagation_speed, after->transmission_speed);
-
-    for(int i=0; i<20; i++) {
-        for (int j=0; j<20; j++) {
-            printf("%d ", after->adj[i][j]);
-        }
-        printf("\n");
-    }
+    printf("-------------------------------------------\n");
 
     while(1) {
         char buffer[3];
