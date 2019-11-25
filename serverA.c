@@ -143,7 +143,7 @@ int * dijkstra(int adj[M_SIZE][M_SIZE], int start, int *holder) {
 
     printf("The Server A has identified the following shortest paths:\n");
     printf("-----------------------------\n");
-    printf("Destination Min Length\n");
+    printf("Destination \t Min Length\n");
     printf("-----------------------------\n");
     for (int i=0; i<M_SIZE; i++) {
         if(s_distance[i] != INT16_MAX && s_distance[i] != 0) {
@@ -172,6 +172,12 @@ int main() {
     udp_address.sin_family = AF_INET;
     udp_address.sin_port = htons(21128);
     udp_address.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+    // initializing the elements of the AWS server UDP socket address information
+    struct sockaddr_in s_address;
+    s_address.sin_family = AF_INET;
+    s_address.sin_port = htons(23128);
+    s_address.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     // binding the UDP socket to the IP address and port number
     int udp_bind = bind(udp_socket, (struct sockaddr *) &udp_address, sizeof(udp_address));
@@ -207,12 +213,12 @@ int main() {
 
     printf("The Server A has constructed a list of %d maps:\n", num_of_maps);
     printf("-------------------------------------------\n");
-    printf("Map ID Num Vertices Num Edges\n");
+    printf("Map ID \t Num Vertices \t Num Edges\n");
     printf("-------------------------------------------\n");
     node_t *element = firstNode;
     while(element != NULL) {
         map_t *map = &element->data;
-        printf("%c      %d      %d\n", map->map_id, map->num_vertices, map->num_edges);
+        printf("%c \t %d \t\t %d\n", map->map_id, map->num_vertices, map->num_edges);
         element = element->next;
     }
     printf("-------------------------------------------\n");
@@ -241,12 +247,23 @@ int main() {
         // identifying shortest paths within map using Dijkstra's algorithm
         int holder[M_SIZE];
         int *shortest_path = dijkstra(picked_map->adj, buffer[1], holder);
-        
-        printf("Shortest path buffer holds:\n");
+
+        char c_shortest_path[M_SIZE];
         for(int i=0; i<M_SIZE; i++) {
-            printf("%d ", shortest_path[i]);
+            c_shortest_path[i] = (char)shortest_path[i];
         }
-        printf("\n");
+
+        // sending the shortest path information to the AWS server
+        if(receive != -1) {
+            socklen_t a_addr_size = sizeof s_address;
+            int udp_send = sendto(udp_socket, c_shortest_path, sizeof(c_shortest_path), 0, (struct sockaddr *) &s_address, a_addr_size);
+            if(udp_send == -1) {
+                perror("Error sending data to AWS");
+            }
+            else {
+                printf("The Server A has sent shortest paths to AWS.\n");
+            }
+        }
         
     }
 

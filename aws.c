@@ -12,6 +12,8 @@
 #include <signal.h>
 #include <math.h>
 
+#define M_SIZE 20
+
 int main() {
 
     // booting up message
@@ -98,7 +100,7 @@ int main() {
         query.start_index = buffer[1];
         query.file_size = buffer[2];
 
-        // sending data to Server A
+        // sending the query information to Server A
         if(client_fd != -1 && receive != -1) {
             socklen_t a_addr_size = sizeof a_address;
             int udp_send = sendto(udp_socket, buffer, sizeof(buffer), 0, (struct sockaddr *) &a_address, a_addr_size);
@@ -109,7 +111,29 @@ int main() {
                 printf("The AWS has sent map ID and starting vertex to server A using UDP over port %d.\n", ntohs(udp_address.sin_port));
             }
         }
-        
+
+        sleep(1);
+
+        // receiving the shortest path information from Server A
+        char buffer_a[M_SIZE];
+        socklen_t length;
+        struct sockaddr_in recv_address;
+
+        int receive_a = recvfrom(udp_socket, &buffer_a, sizeof(buffer_a), 0, (struct sockaddr *) &recv_address, &length);
+
+        if(receive_a != -1) {
+            printf("The AWS has received shortest path from server A:\n");
+            printf("-----------------------------\n");
+            printf("Destination \t Min Length\n");
+            printf("-----------------------------\n");
+            for (int i=0; i<M_SIZE; i++) {
+                if(buffer_a[i] != 0) {
+                    printf("%d \t\t %d\n", i, buffer_a[i]);
+                }
+            }
+            printf("-----------------------------\n");
+        }
+
         // sending data to the Client
         int sending = send(client_fd, shortest_path, sizeof(shortest_path), 0);
         if(sending != -1) {
@@ -119,7 +143,6 @@ int main() {
             perror("Error sending data to Client");
         }
 
-        sleep(1);
     }
 
     // closing the socket
