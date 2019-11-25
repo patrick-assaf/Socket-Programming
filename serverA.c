@@ -12,7 +12,7 @@
 #include <signal.h>
 #include <math.h>
 
-// creating a data structure to store map information
+// data structure to store map information
 typedef struct map {
     char map_id;
     float propagation_speed;
@@ -23,20 +23,30 @@ typedef struct map {
     int num_edges;
 } map_t;
 
-// creating linked list nodes for the maps list
+// linked list nodes for the maps list
 typedef struct node {
     map_t data;
     struct node *next;
 } node_t;
 
+// function that creates and allocates memory for a new map struct
 map_t *createMap() {
     map_t *newMap = (map_t*)malloc(sizeof(map_t));
     if(!newMap) {
         perror("Error allocating map memory");
     }
+    for(int i=0; i<20; i++) {
+        newMap->vertices[i] = 0;
+    }
+    for(int i=0; i<20; i++) {
+        for(int j=0; j<20; j++) {
+            newMap->adj[i][j] = 0;
+        }
+    }
     return newMap;
 }
 
+// function that creates and allocates memory for a new node struct
 node_t *createNode(map_t *newMap) {
     node_t *newNode = (node_t*)malloc(sizeof(node_t));
     newNode->data = *newMap;
@@ -47,6 +57,7 @@ node_t *createNode(map_t *newMap) {
     return newNode;
 }
 
+// method used to read and store data from the map file
 int new = 1;
 int num_of_maps = 0;
 ssize_t line = 0;
@@ -160,12 +171,48 @@ int main() {
         char buffer[3];
         socklen_t length;
         struct sockaddr_in client_address;
+
+        // receiving the query information from the AWS server
         int receive = recvfrom(udp_socket, &buffer, sizeof(buffer), 0, (struct sockaddr *) &client_address, &length);
 
         if(receive != -1) {
             printf("The Server A has received input for finding shortest paths: starting vertex %d of map %c.\n",
             buffer[1], buffer[0]);
         }
+
+        // selecting map requested from query
+        node_t *element = firstNode;
+        map_t *picked_map = &firstNode->data;
+        while(picked_map->map_id != buffer[0]) {
+            element = element->next;
+            picked_map = &element->data;
+            if(!picked_map) {
+                printf("Map %c does not exist.\n", buffer[0]);
+                break;
+            }
+        }
+
+        printf("Selected map information:\n");
+        printf("Map ID: %c\nPropagation Speed: %.2f\nTransmission Speed: %.2f\nNum Vertices: %d\nNum Edges: %d\n",
+        picked_map->map_id, picked_map->propagation_speed, picked_map->transmission_speed, picked_map->num_vertices, picked_map->num_edges);
+
+        printf("Vertices array:\n");
+        for(int i=0; i<20; i++) {
+            printf("%d ", picked_map->vertices[i]);
+        }
+        printf("\n");
+
+        printf("Adjacency matrix:\n");
+        for(int i=0; i<20; i++) {
+            for(int j=0; j<20; j++) {
+                printf("%d ", picked_map->adj[i][j]);
+            }
+            printf("\n");
+        }
+
+        // identifying shortest paths within map using Dijkstra's algorithm
+        
+
     }
 
     return 0;
