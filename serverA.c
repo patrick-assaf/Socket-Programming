@@ -12,13 +12,15 @@
 #include <signal.h>
 #include <math.h>
 
+#define M_SIZE 20
+
 // data structure to store map information
 typedef struct map {
     char map_id;
     float propagation_speed;
     float transmission_speed;
-    int adj[20][20];
-    int vertices[20];
+    int adj[M_SIZE][M_SIZE];
+    int vertices[M_SIZE];
     int num_vertices;
     int num_edges;
 } map_t;
@@ -35,11 +37,11 @@ map_t *createMap() {
     if(!newMap) {
         perror("Error allocating map memory");
     }
-    for(int i=0; i<20; i++) {
+    for(int i=0; i<M_SIZE; i++) {
         newMap->vertices[i] = 0;
     }
-    for(int i=0; i<20; i++) {
-        for(int j=0; j<20; j++) {
+    for(int i=0; i<M_SIZE; i++) {
+        for(int j=0; j<M_SIZE; j++) {
             newMap->adj[i][j] = 0;
         }
     }
@@ -107,6 +109,54 @@ int readFromMapFile(map_t *newMap, FILE *mapFile) {
 
     free(buffer);
     return 1;
+}
+
+// function used to identify the shortest paths within a map using Dijkstra's algorithm
+int * dijkstra(int adj[M_SIZE][M_SIZE], int start, int *holder) {
+
+    int s_distance[M_SIZE];
+    int spt[M_SIZE];
+
+    for(int i=0; i<M_SIZE; i++) {
+        s_distance[i] = INT16_MAX;
+        spt[i] = 0;
+    }
+
+    s_distance[start] = 0;
+    
+    for(int i=0; i<M_SIZE-1; i++) {
+        int min_dist = INT16_MAX;
+        int index;
+        for(int i=0; i<M_SIZE; i++) {
+            if(spt[i] == 0 && s_distance[i] <= min_dist) {
+                min_dist = s_distance[i];
+                index = i;
+            }
+        }
+        spt[index] = 1;
+        for(int j=0; j<M_SIZE; j++) {
+            if (!spt[j] && adj[index][j] && s_distance[index] != INT16_MAX && s_distance[index] + adj[index][j] < s_distance[j]) {
+                s_distance[j] = s_distance[index] + adj[index][j];
+            }
+        }
+    }
+
+    printf("The Server A has identified the following shortest paths:\n");
+    printf("-----------------------------\n");
+    printf("Destination Min Length\n");
+    printf("-----------------------------\n");
+    for (int i=0; i<M_SIZE; i++) {
+        if(s_distance[i] != INT16_MAX && s_distance[i] != 0) {
+            printf("%d \t\t %d\n", i, s_distance[i]);
+            holder[i] = s_distance[i];
+        }
+        else {
+            holder[i] = 0;
+        }
+    }
+    printf("-----------------------------\n");
+
+    return holder;
 }
 
 int main() {
@@ -186,33 +236,18 @@ int main() {
         while(picked_map->map_id != buffer[0]) {
             element = element->next;
             picked_map = &element->data;
-            if(!picked_map) {
-                printf("Map %c does not exist.\n", buffer[0]);
-                break;
-            }
-        }
-
-        printf("Selected map information:\n");
-        printf("Map ID: %c\nPropagation Speed: %.2f\nTransmission Speed: %.2f\nNum Vertices: %d\nNum Edges: %d\n",
-        picked_map->map_id, picked_map->propagation_speed, picked_map->transmission_speed, picked_map->num_vertices, picked_map->num_edges);
-
-        printf("Vertices array:\n");
-        for(int i=0; i<20; i++) {
-            printf("%d ", picked_map->vertices[i]);
-        }
-        printf("\n");
-
-        printf("Adjacency matrix:\n");
-        for(int i=0; i<20; i++) {
-            for(int j=0; j<20; j++) {
-                printf("%d ", picked_map->adj[i][j]);
-            }
-            printf("\n");
         }
 
         // identifying shortest paths within map using Dijkstra's algorithm
+        int holder[M_SIZE];
+        int *shortest_path = dijkstra(picked_map->adj, buffer[1], holder);
         
-
+        printf("Shortest path buffer holds:\n");
+        for(int i=0; i<M_SIZE; i++) {
+            printf("%d ", shortest_path[i]);
+        }
+        printf("\n");
+        
     }
 
     return 0;
