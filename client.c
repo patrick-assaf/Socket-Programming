@@ -17,13 +17,14 @@ int main(int argc, char* argv[]) {
     // defining the variables that will hold the query information
     typedef struct query {
         char map_id;
-        int start_index, file_size;
+        int start_index;
+        long file_size;
     } query_t;
 
     query_t query;
     query.map_id = *argv[1];
     query.start_index = atoi(argv[2]);
-    query.file_size = atoi(argv[3]);
+    query.file_size = atol(argv[3]);
 
     // booting up message
     printf("The client is up and running.\n");
@@ -58,7 +59,7 @@ int main(int argc, char* argv[]) {
     }
 
     // sending the query information to the AWS server
-    char buffer[3];
+    long buffer[3];
     buffer[0] = query.map_id;
     buffer[1] = query.start_index;
     buffer[2] = query.file_size;
@@ -68,8 +69,8 @@ int main(int argc, char* argv[]) {
         perror("Error sending data to AWS server");
     }
     else {
-        printf("The client has sent query to AWS using TCP: start vertex %d; map %c; file size %d.\n", 
-        buffer[1], buffer[0], buffer[2]);
+        printf("The client has sent query to AWS using TCP: start vertex %d; map %c; file size %ld.\n", 
+        query.start_index, query.map_id, query.file_size);
     }
 
     // receiving the shortest path information back from the AWS server

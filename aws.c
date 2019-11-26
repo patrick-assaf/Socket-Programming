@@ -19,8 +19,6 @@ int main() {
     // booting up message
     printf("The AWS is up and running.\n");
 
-    char shortest_path[256] = "This is the shortest path: ~"; // replace later with real data
-
     // creating a TCP socket to connect to the Client
     int aws_socket = socket(AF_INET, SOCK_STREAM, 0);
     if(aws_socket == -1) {
@@ -79,26 +77,15 @@ int main() {
         int client_fd = accept(aws_socket, (struct sockaddr *) &client_address, &client_addr_size);
 
         // receiving the query information from the Client
-        char buffer[3];
+        long buffer[3];
         int receive = recv(client_fd, &buffer, sizeof(buffer), 0);
         if(receive != -1) {
-            printf("The AWS has received map ID %c, start vertex %d and file size %d from the client using TCP over port %d.\n",
-            buffer[0], buffer[1], buffer[2], ntohs(s_address.sin_port));
+            printf("The AWS has received map ID %c, start vertex %ld and file size %ld from the client using TCP over port %d.\n",
+            (int)buffer[0], buffer[1], buffer[2], ntohs(s_address.sin_port));
         }
         else if(client_fd != -1 && receive == -1) {
             perror("Error receiving data from Client");
         }
-
-        typedef struct query {
-            char map_id;
-            int start_index, file_size;
-        } query_t;
-
-        query_t query;
-
-        query.map_id = buffer[0];
-        query.start_index = buffer[1];
-        query.file_size = buffer[2];
 
         // sending the query information to Server A
         if(client_fd != -1 && receive != -1) {
@@ -115,7 +102,7 @@ int main() {
         sleep(1);
 
         // receiving the shortest path information from Server A
-        char buffer_a[M_SIZE];
+        int buffer_a[M_SIZE+2];
         socklen_t length;
         struct sockaddr_in recv_address;
 
@@ -134,7 +121,23 @@ int main() {
             printf("-----------------------------\n");
         }
 
+        printf("Propagation speed: %.2f\nTransmission speed: %.2f\n", ((double)buffer_a[M_SIZE])/100, ((double)buffer_a[M_SIZE+1])/100);
+
+        // sending data for calculation to Server B
+        long buffer_b[M_SIZE+3];
+        for(int i=0; i<M_SIZE+2; i++) {
+            buffer_b[i] = buffer_a[i];
+        }
+        buffer_b[M_SIZE+2] = buffer[2];
+
+        printf("Data to send to Server B:\n");
+        for(int i=0; i<M_SIZE+3; i++) {
+            printf("%ld ", buffer_b[i]);
+        }
+        printf("\n");
+
         // sending data to the Client
+        char shortest_path[256] = "This is the shortest path: ~"; // replace later with real data
         int sending = send(client_fd, shortest_path, sizeof(shortest_path), 0);
         if(sending != -1) {
             printf("The AWS has sent calculated delay to client using TCP over port %d.\n", ntohs(s_address.sin_port));

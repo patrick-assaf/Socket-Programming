@@ -17,8 +17,8 @@
 // data structure to store map information
 typedef struct map {
     char map_id;
-    float propagation_speed;
-    float transmission_speed;
+    double propagation_speed;
+    double transmission_speed;
     int adj[M_SIZE][M_SIZE];
     int vertices[M_SIZE];
     int num_vertices;
@@ -224,7 +224,7 @@ int main() {
     printf("-------------------------------------------\n");
 
     while(1) {
-        char buffer[3];
+        long buffer[3];
         socklen_t length;
         struct sockaddr_in client_address;
 
@@ -233,25 +233,29 @@ int main() {
 
         if(receive != -1) {
             printf("The Server A has received input for finding shortest paths: starting vertex %d of map %c.\n",
-            buffer[1], buffer[0]);
+            (int)buffer[1], (int)buffer[0]);
         }
 
         // selecting map requested from query
         node_t *element = firstNode;
         map_t *picked_map = &firstNode->data;
-        while(picked_map->map_id != buffer[0]) {
+        while(picked_map->map_id != (int)buffer[0]) {
             element = element->next;
             picked_map = &element->data;
         }
 
         // identifying shortest paths within map using Dijkstra's algorithm
         int holder[M_SIZE];
-        int *shortest_path = dijkstra(picked_map->adj, buffer[1], holder);
+        int *shortest_path = dijkstra(picked_map->adj, (int)buffer[1], holder);
 
-        char c_shortest_path[M_SIZE];
+        int c_shortest_path[M_SIZE+2];
         for(int i=0; i<M_SIZE; i++) {
-            c_shortest_path[i] = (char)shortest_path[i];
+            c_shortest_path[i] = shortest_path[i];
         }
+        int propagation = (int)((picked_map->propagation_speed)*100);
+        int transmission = (int)((picked_map->transmission_speed)*100);
+        c_shortest_path[M_SIZE] = propagation;
+        c_shortest_path[M_SIZE+1] = transmission;
 
         // sending the shortest path information to the AWS server
         if(receive != -1) {
