@@ -12,6 +12,8 @@
 #include <signal.h>
 #include <math.h>
 
+#define M_SIZE 20
+
 int main(int argc, char* argv[]) {
 
     // defining the variables that will hold the query information
@@ -74,14 +76,24 @@ int main(int argc, char* argv[]) {
     }
 
     // receiving the shortest path information back from the AWS server
-    char shortest_path[256]; // change data structure later
-    int receive = recv(aws_socket, &shortest_path, sizeof(shortest_path), 0);
+    float results[M_SIZE][4];
+    int receive = recv(aws_socket, &results, sizeof(results), 0);
     if(receive == -1) {
         perror("Error receiving data from AWS server");
     }
     else {
-        printf("The client has received results from AWS: %s\n", shortest_path);
+        printf("The client has received results from AWS:\n");
     }
+
+    printf("--------------------------------------------------------------------------\n");
+    printf("Destination \t Min Length \t Tt \t\t Tp \t\t Delay\n");
+    printf("--------------------------------------------------------------------------\n");
+    for (int i=0; i<M_SIZE; i++) {
+        if(results[i][0] != 0) {
+            printf("%d \t\t %d \t\t %.2f \t %.2f \t\t %.2f \n", i, (int)results[i][0], results[i][1], results[i][2], results[i][3]);
+        }
+    }
+    printf("--------------------------------------------------------------------------\n");
 
     // closing the socket
     close(aws_socket);

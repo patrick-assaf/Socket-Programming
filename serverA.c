@@ -190,8 +190,9 @@ int main() {
     if(udp_bind == -1) {
         perror("Error binding UDP socket with address information");
     }
-
-    printf("The Server A is up and running using UDP on port %d.\n", ntohs(udp_address.sin_port));
+    else {
+        printf("The Server A is up and running using UDP on port %d.\n", ntohs(udp_address.sin_port));
+    }
 
     // reading and storing data from map.txt
     FILE *mapFile = fopen("map.txt", "r");
@@ -274,7 +275,8 @@ int main() {
                 printf("The Server A has sent shortest paths to AWS.\n");
             }
         }
-        
+
+        sleep(1);
     }
 
     return 0;

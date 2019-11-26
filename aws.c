@@ -109,10 +109,10 @@ int main() {
 
         // receiving the shortest path information from Server A
         int buffer_a[M_SIZE+2];
-        socklen_t length;
-        struct sockaddr_in recv_address;
+        socklen_t length_a;
+        struct sockaddr_in recv_a_address;
 
-        int receive_a = recvfrom(udp_socket, &buffer_a, sizeof(buffer_a), 0, (struct sockaddr *) &recv_address, &length);
+        int receive_a = recvfrom(udp_socket, &buffer_a, sizeof(buffer_a), 0, (struct sockaddr *) &recv_a_address, &length_a);
 
         if(receive_a != -1) {
             printf("The AWS has received shortest path from server A:\n");
@@ -147,16 +147,44 @@ int main() {
 
         sleep(1);
 
-        // sending data to the Client
-        char shortest_path[256] = "This is the shortest path: ~"; // replace later with real data
-        int sending = send(client_fd, shortest_path, sizeof(shortest_path), 0);
-        if(sending != -1) {
-            printf("The AWS has sent calculated delay to client using TCP over port %d.\n", ntohs(s_address.sin_port));
-        }
-        else if(client_fd != -1 && sending == -1) {
-            perror("Error sending data to Client");
+        // receiving output from Server B
+        float calculations[M_SIZE][3];
+        socklen_t length_b;
+        struct sockaddr_in recv_b_address;
+
+        int receive_b = recvfrom(udp_socket, &calculations, sizeof(calculations), 0, (struct sockaddr *) &recv_b_address, &length_b);
+
+        float results[M_SIZE][4];
+
+        if(receive_b != -1){
+            for(int i=0; i<M_SIZE; i++) {
+                results[i][0] = buffer_a[i];
+                results[i][1] = calculations[i][0];
+                results[i][2] = calculations[i][1];
+                results[i][3] = calculations[i][2];
+            }
+            printf("The AWS has received delays from server B:\n");
+            printf("----------------------------------------------------------\n");
+            printf("Destination \t Tt \t\t Tp \t\t Delay\n");
+            printf("----------------------------------------------------------\n");
+            for (int i=0; i<M_SIZE; i++) {
+                if(results[i][0] != 0) {
+                    printf("%d \t\t %.2f \t %.2f \t\t %.2f \n", i, results[i][1], results[i][2], results[i][3]);
+                }
+            }
+            printf("----------------------------------------------------------\n");
         }
 
+        // sending data to the Client
+        if(receive_b != -1) {
+            int sending = send(client_fd, results, sizeof(results), 0);
+            if(sending != -1) {
+                printf("The AWS has sent calculated delay to client using TCP over port %d.\n", ntohs(s_address.sin_port));
+            }
+            else if(client_fd != -1 && sending == -1) {
+                perror("Error sending data to Client");
+            }
+        }
     }
 
     // closing the socket
