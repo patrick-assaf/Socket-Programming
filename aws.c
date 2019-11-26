@@ -49,6 +49,12 @@ int main() {
     a_address.sin_port = htons(21128);
     a_address.sin_addr.s_addr = inet_addr("127.0.0.1");
 
+    // initializing the elements of the Server B UDP socket address information
+    struct sockaddr_in b_address;
+    b_address.sin_family = AF_INET;
+    b_address.sin_port = htons(22128);
+    b_address.sin_addr.s_addr = inet_addr("127.0.0.1");
+
     // initializing the elements of the Client socket address information
     struct sockaddr_in client_address;
     client_address.sin_family = AF_INET;
@@ -121,8 +127,6 @@ int main() {
             printf("-----------------------------\n");
         }
 
-        printf("Propagation speed: %.2f\nTransmission speed: %.2f\n", ((double)buffer_a[M_SIZE])/100, ((double)buffer_a[M_SIZE+1])/100);
-
         // sending data for calculation to Server B
         long buffer_b[M_SIZE+3];
         for(int i=0; i<M_SIZE+2; i++) {
@@ -130,11 +134,18 @@ int main() {
         }
         buffer_b[M_SIZE+2] = buffer[2];
 
-        printf("Data to send to Server B:\n");
-        for(int i=0; i<M_SIZE+3; i++) {
-            printf("%ld ", buffer_b[i]);
+        if(receive_a != -1) {
+            socklen_t b_addr_size = sizeof b_address;
+            int b_send = sendto(udp_socket, buffer_b, sizeof(buffer_b), 0, (struct sockaddr *) &b_address, b_addr_size);
+            if(b_send == -1) {
+                perror("Error sending data to Server B");
+            }
+            else {
+                printf("The AWS has sent path length, propagation speed and transmission speed to server B using UDP over port %d.\n", ntohs(udp_address.sin_port));
+            }
         }
-        printf("\n");
+
+        sleep(1);
 
         // sending data to the Client
         char shortest_path[256] = "This is the shortest path: ~"; // replace later with real data

@@ -54,6 +54,14 @@ int main() {
             printf("The Server B has received data for calculation:\n");
         }
 
+        printf("Data received by AWS:\n");
+        for(int i=0; i<M_SIZE+3; i++) {
+            printf("%ld ", buffer[i]);
+        }
+        printf("\n");
+
+        printf("Propagation speed: %.2f\nTransmission speed: %.2f\n", ((double)buffer[M_SIZE])/100, ((double)buffer[M_SIZE+1])/100);
+
     }
 
     return 0;
