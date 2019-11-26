@@ -12,7 +12,7 @@
 #include <signal.h>
 #include <math.h>
 
-#define M_SIZE 20
+#define M_SIZE 100
 
 int main(int argc, char* argv[]) {
 
