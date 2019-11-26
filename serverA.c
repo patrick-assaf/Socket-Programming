@@ -98,8 +98,14 @@ int readFromMapFile(map_t *newMap, FILE *mapFile) {
                 newMap->vertices[j] = 1;
                 newMap->num_vertices += 1;
             }
-            newMap->adj[i][j] = atoi(&buffer[4]);
-            newMap->adj[j][i] = atoi(&buffer[4]);
+            if(atoi(&buffer[0]) > 9 && atoi(&buffer[2]) > 9) {
+                newMap->adj[i][j] = atoi(&buffer[5]);
+                newMap->adj[j][i] = atoi(&buffer[5]);
+            }
+            else {
+                newMap->adj[i][j] = atoi(&buffer[4]);
+                newMap->adj[j][i] = atoi(&buffer[4]);
+            }
         }
     }
 
@@ -135,7 +141,7 @@ int * dijkstra(int adj[M_SIZE][M_SIZE], int start, int *holder) {
         }
         spt[index] = 1;
         for(int j=0; j<M_SIZE; j++) {
-            if (!spt[j] && adj[index][j] && s_distance[index] != INT16_MAX && s_distance[index] + adj[index][j] < s_distance[j]) {
+            if (!spt[j] && adj[index][j] && s_distance[index] != INT16_MAX && (s_distance[index] + adj[index][j]) < s_distance[j]) {
                 s_distance[j] = s_distance[index] + adj[index][j];
             }
         }

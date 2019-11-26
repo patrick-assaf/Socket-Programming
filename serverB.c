@@ -43,7 +43,7 @@ int main() {
     printf("The Server B is up and running using UDP on port %d.\n", ntohs(udp_address.sin_port));
 
     while(1) {
-        char buffer[M_SIZE+2];
+        long buffer[M_SIZE+3];
         socklen_t length;
         struct sockaddr_in client_address;
 
