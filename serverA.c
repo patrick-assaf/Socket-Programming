@@ -259,7 +259,6 @@ int main() {
         for(int i=0; i<M_SIZE; i++) {
             c_shortest_path[i] = shortest_path[i];
         }
-        printf("Value of propagation speed is: %.2f\n", picked_map->propagation_speed);
         long propagation = (long)((picked_map->propagation_speed*100) < 0 ? (picked_map->propagation_speed*100)-0.5 : (picked_map->propagation_speed*100)+0.5);
         long transmission = (long)((picked_map->transmission_speed*100) < 0 ? (picked_map->transmission_speed*100)-0.5 : (picked_map->transmission_speed*100)+0.5);
         c_shortest_path[M_SIZE] = propagation;
