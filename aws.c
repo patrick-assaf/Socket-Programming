@@ -83,11 +83,11 @@ int main() {
         int client_fd = accept(aws_socket, (struct sockaddr *) &client_address, &client_addr_size);
 
         // receiving the query information from the Client
-        long buffer[3];
+        long long buffer[3];
         int receive = recv(client_fd, &buffer, sizeof(buffer), 0);
         if(receive != -1) {
-            printf("The AWS has received map ID %c, start vertex %ld and file size %ld from the client using TCP over port %d.\n",
-            (int)buffer[0], buffer[1], buffer[2], ntohs(s_address.sin_port));
+            printf("The AWS has received map ID %c, start vertex %d and file size %lld from the client using TCP over port %d.\n",
+            (int)buffer[0], (int)buffer[1], buffer[2], ntohs(s_address.sin_port));
         }
         else if(client_fd != -1 && receive == -1) {
             perror("Error receiving data from Client");
@@ -108,7 +108,7 @@ int main() {
         sleep(1);
 
         // receiving the shortest path information from Server A
-        int buffer_a[M_SIZE+2];
+        long buffer_a[M_SIZE+2];
         socklen_t length_a;
         struct sockaddr_in recv_a_address;
 
@@ -121,14 +121,14 @@ int main() {
             printf("-----------------------------\n");
             for (int i=0; i<M_SIZE; i++) {
                 if(buffer_a[i] != 0) {
-                    printf("%d \t\t %d\n", i, buffer_a[i]);
+                    printf("%d \t\t %d\n", i, (int)buffer_a[i]);
                 }
             }
             printf("-----------------------------\n");
         }
 
         // sending data for calculation to Server B
-        long buffer_b[M_SIZE+3];
+        long long buffer_b[M_SIZE+3];
         for(int i=0; i<M_SIZE+2; i++) {
             buffer_b[i] = buffer_a[i];
         }
@@ -148,13 +148,13 @@ int main() {
         sleep(1);
 
         // receiving output from Server B
-        float calculations[M_SIZE][3];
+        double calculations[M_SIZE][3];
         socklen_t length_b;
         struct sockaddr_in recv_b_address;
 
         int receive_b = recvfrom(udp_socket, &calculations, sizeof(calculations), 0, (struct sockaddr *) &recv_b_address, &length_b);
 
-        float results[M_SIZE][4];
+        double results[M_SIZE][4];
 
         if(receive_b != -1){
             for(int i=0; i<M_SIZE; i++) {

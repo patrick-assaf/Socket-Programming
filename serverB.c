@@ -43,7 +43,7 @@ int main() {
     printf("The Server B is up and running using UDP on port %d.\n", ntohs(udp_address.sin_port));
 
     while(1) {
-        long buffer[M_SIZE+3];
+        long long buffer[M_SIZE+3];
         socklen_t length;
         struct sockaddr_in client_address;
 
@@ -56,7 +56,7 @@ int main() {
 
         double propagation_speed = ((double)buffer[M_SIZE])/100;
         double transmission_speed = ((double)buffer[M_SIZE+1])/100;
-        long file_size = buffer[M_SIZE+2]/8;
+        long long file_size = buffer[M_SIZE+2]/8;
         printf("* Transmission speed: %.2f Bytes/s;\n* Propagation speed: %.2f km/s;\n", transmission_speed, propagation_speed);
         for(int i=0; i<M_SIZE; i++) {
             if(buffer[i] != 0) {
@@ -65,11 +65,11 @@ int main() {
         }
 
         // computing the transmission delay, propagation delay, and end-to-end delay
-        float calculations[M_SIZE][3];
+        double calculations[M_SIZE][3];
         for(int i=0; i<M_SIZE; i++) {
             if(buffer[i] != 0) {
-                calculations[i][0] = ((float)file_size)/transmission_speed;
-                calculations[i][1] = ((float)buffer[i])/propagation_speed;
+                calculations[i][0] = ((double)file_size)/transmission_speed;
+                calculations[i][1] = ((double)buffer[i])/propagation_speed;
                 calculations[i][2] = calculations[i][0] + calculations[i][1];
             }
             else {

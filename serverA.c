@@ -231,7 +231,7 @@ int main() {
     printf("-------------------------------------------\n");
 
     while(1) {
-        long buffer[3];
+        long long buffer[3];
         socklen_t length;
         struct sockaddr_in client_address;
 
@@ -255,12 +255,13 @@ int main() {
         int holder[M_SIZE];
         int *shortest_path = dijkstra(picked_map->adj, (int)buffer[1], holder);
 
-        int c_shortest_path[M_SIZE+2];
+        long c_shortest_path[M_SIZE+2];
         for(int i=0; i<M_SIZE; i++) {
             c_shortest_path[i] = shortest_path[i];
         }
-        int propagation = (int)((picked_map->propagation_speed)*100);
-        int transmission = (int)((picked_map->transmission_speed)*100);
+        printf("Value of propagation speed is: %.2f\n", picked_map->propagation_speed);
+        long propagation = (long)((picked_map->propagation_speed*100) < 0 ? (picked_map->propagation_speed*100)-0.5 : (picked_map->propagation_speed*100)+0.5);
+        long transmission = (long)((picked_map->transmission_speed*100) < 0 ? (picked_map->transmission_speed*100)-0.5 : (picked_map->transmission_speed*100)+0.5);
         c_shortest_path[M_SIZE] = propagation;
         c_shortest_path[M_SIZE+1] = transmission;
 
