@@ -2,14 +2,14 @@
 UNIX socket programming project
 
 Makefile commands:
-make all: compile all source files seperately and create executables
-make serverA: run the Server A program
-make serverB: run the Server B program
-make aws: run the AWS server program
-make clean: deletes all binary files and executables within the project directory
+make all: compile all source files seperately and create executables.
+make serverA: run the Server A program.
+make serverB: run the Server B program.
+make aws: run the AWS server program.
+make clean: deletes all binary files and executables within the project directory.
 
 Command to run the client program:
-./client (Map ID) (Source Vertex Index) (File Size)
+./client (Map ID) (Source Vertex Index) (File Size).
 
 After booting up, the client establishes a TCP connection with AWS. After successfully establishing the connection, the client sends the input (map ID, source vertex index and file size) to AWS. 
 
